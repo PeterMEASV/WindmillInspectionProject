@@ -2,18 +2,27 @@ using api;
 using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Mqtt.Controllers;
+using StateleSSE.AspNetCore;
+using StateleSSE.AspNetCore.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var appOptions = builder.Services.AddAppOptions(builder.Configuration);
 
+
+
 builder.Services.AddCors();
-builder.Services.AddDbContext<MyDbContext>(conf =>
+
+builder.Services.AddDbContext<MyDbContext>((sp, options) =>
 {
-    conf.UseNpgsql(appOptions.DBConnectionString);
+    options.UseNpgsql(appOptions.DBConnectionString, npgsqlOptions => npgsqlOptions.EnableRetryOnFailure());
+    options.AddEfRealtimeInterceptor(sp);
 });
+
 builder.Services.AddMqttControllers();
 builder.Services.AddControllers();
+builder.Services.AddInMemorySseBackplane();
+builder.Services.AddEfRealtime();
 builder.Services.AddOpenApiDocument();
 
 

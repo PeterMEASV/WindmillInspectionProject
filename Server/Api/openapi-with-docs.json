@@ -5,5 +5,246 @@
     "title": "My Title",
     "version": "1.0.0"
   },
-  "components": {}
+  "paths": {
+    "/farm/Mindst2Commits/windmill/{turbineId}/command": {
+      "post": {
+        "tags": [
+          "M2CMqtt"
+        ],
+        "operationId": "M2CMqtt_SetInterval",
+        "parameters": [
+          {
+            "name": "turbineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Telemetry/latest": {
+      "get": {
+        "tags": [
+          "Telemetry"
+        ],
+        "operationId": "Telemetry_GetLatestTelemetry",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Telemetry/{turbineId}": {
+      "get": {
+        "tags": [
+          "Telemetry"
+        ],
+        "operationId": "Telemetry_GetTelemetryForTurbine",
+        "parameters": [
+          {
+            "name": "turbineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Telemetry/GetTelemetry": {
+      "get": {
+        "tags": [
+          "Telemetry"
+        ],
+        "operationId": "Telemetry_GetTelemetry",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RealtimeListenResponseOfListOfTelemetry"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Telemetry/sse": {
+      "get": {
+        "tags": [
+          "Telemetry"
+        ],
+        "operationId": "Telemetry_Connect",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RealtimeListenResponseOfListOfTelemetry": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/RealtimeListenResponse"
+          },
+          {
+            "type": "object",
+            "description": "Returned by subscribe endpoints with initial data. The client receives the current state\nimmediately and knows which SSE group to listen on for subsequent updates.",
+            "additionalProperties": false,
+            "properties": {
+              "data": {
+                "type": "array",
+                "nullable": true,
+                "items": {
+                  "$ref": "#/components/schemas/Telemetry"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Telemetry": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "turbineid": {
+            "type": "string"
+          },
+          "turbinename": {
+            "type": "string"
+          },
+          "farmid": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "windspeed": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "winddirection": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "ambienttemperature": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "rotorspeed": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "poweroutput": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "nacelledirection": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "bladepitch": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "generatortemp": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "gearboxtemp": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "vibration": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "RealtimeListenResponse": {
+        "type": "object",
+        "description": "Returned by subscribe endpoints so the client knows which SSE group to listen on.",
+        "additionalProperties": false,
+        "properties": {
+          "group": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
 }
