@@ -2,18 +2,27 @@ using api;
 using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Mqtt.Controllers;
+using StateleSSE.AspNetCore;
+using StateleSSE.AspNetCore.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var appOptions = builder.Services.AddAppOptions(builder.Configuration);
 
+
+
 builder.Services.AddCors();
-builder.Services.AddDbContext<MyDbContext>(conf =>
+
+builder.Services.AddDbContext<MyDbContext>((sp, options) =>
 {
-    conf.UseNpgsql(appOptions.DBConnectionString);
+    options.UseNpgsql(appOptions.DBConnectionString, npgsqlOptions => npgsqlOptions.EnableRetryOnFailure());
+    options.AddEfRealtimeInterceptor(sp);
 });
+
 builder.Services.AddMqttControllers();
 builder.Services.AddControllers();
+builder.Services.AddInMemorySseBackplane();
+builder.Services.AddEfRealtime();
 builder.Services.AddOpenApiDocument();
 
 
@@ -25,7 +34,7 @@ app.UseSwaggerUi();
 await app.GenerateApiClientsFromOpenApi("/../../client/src/generated-ts-client.ts");
 
 var mqtt = app.Services.GetRequiredService<IMqttClientService>();
-await mqtt.ConnectAsync("broker.hivemq.com", 1883);
+await mqtt.ConnectAsync("broker.hivemq.com", 8883, useTls:true);
 
 
 app.Run();
