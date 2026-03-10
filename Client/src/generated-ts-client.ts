@@ -7,6 +7,170 @@
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
 
+export class AlertsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    createAlert(data: Alert): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/api/Alerts";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(data);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateAlert(_response);
+        });
+    }
+
+    protected processCreateAlert(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
+    }
+
+    getAlertsForTurbine(turbineId: string): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/api/Alerts/turbine/{turbineId}";
+        if (turbineId === undefined || turbineId === null)
+            throw new globalThis.Error("The parameter 'turbineId' must be defined.");
+        url_ = url_.replace("{turbineId}", encodeURIComponent("" + turbineId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAlertsForTurbine(_response);
+        });
+    }
+
+    protected processGetAlertsForTurbine(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
+    }
+
+    switchAlertGroup(connectionId: string | undefined, turbineId: string | undefined, previousTurbineId: string | null | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/Alerts/SwitchAlertGroup?";
+        if (connectionId === null)
+            throw new globalThis.Error("The parameter 'connectionId' cannot be null.");
+        else if (connectionId !== undefined)
+            url_ += "connectionId=" + encodeURIComponent("" + connectionId) + "&";
+        if (turbineId === null)
+            throw new globalThis.Error("The parameter 'turbineId' cannot be null.");
+        else if (turbineId !== undefined)
+            url_ += "turbineId=" + encodeURIComponent("" + turbineId) + "&";
+        if (previousTurbineId !== undefined && previousTurbineId !== null)
+            url_ += "previousTurbineId=" + encodeURIComponent("" + previousTurbineId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSwitchAlertGroup(_response);
+        });
+    }
+
+    protected processSwitchAlertGroup(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    connect(): Promise<void> {
+        let url_ = this.baseUrl + "/api/Alerts/sse";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processConnect(_response);
+        });
+    }
+
+    protected processConnect(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export class M2CMqttClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -18,7 +182,7 @@ export class M2CMqttClient {
     }
 
     setInterval(turbineId: string, interval: number | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/farm/Mindst2Commits/windmill/{turbineId}/command?";
+        let url_ = this.baseUrl + "/farm/Mindst2Commits/windmill/{turbineId}/command/set-interval?";
         if (turbineId === undefined || turbineId === null)
             throw new globalThis.Error("The parameter 'turbineId' must be defined.");
         url_ = url_.replace("{turbineId}", encodeURIComponent("" + turbineId));
@@ -53,35 +217,136 @@ export class M2CMqttClient {
         }
         return Promise.resolve<void>(null as any);
     }
-}
 
-export class TelemetryClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
-    }
-
-    getLatestTelemetry(): Promise<FileResponse> {
-        let url_ = this.baseUrl + "/api/Telemetry/latest";
+    stopTurbine(turbineId: string, reason: string | null | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/farm/Mindst2Commits/windmill/{turbineId}/command/stop?";
+        if (turbineId === undefined || turbineId === null)
+            throw new globalThis.Error("The parameter 'turbineId' must be defined.");
+        url_ = url_.replace("{turbineId}", encodeURIComponent("" + turbineId));
+        if (reason !== undefined && reason !== null)
+            url_ += "reason=" + encodeURIComponent("" + reason) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
-            method: "GET",
+            method: "POST",
             headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processStopTurbine(_response);
+        });
+    }
+
+    protected processStopTurbine(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    startTurbine(turbineId: string): Promise<void> {
+        let url_ = this.baseUrl + "/farm/Mindst2Commits/windmill/{turbineId}/command/start";
+        if (turbineId === undefined || turbineId === null)
+            throw new globalThis.Error("The parameter 'turbineId' must be defined.");
+        url_ = url_.replace("{turbineId}", encodeURIComponent("" + turbineId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processStartTurbine(_response);
+        });
+    }
+
+    protected processStartTurbine(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    setBladePitch(turbineId: string, bladePitch: number | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/farm/Mindst2Commits/windmill/{turbineId}/command/blade-pitch?";
+        if (turbineId === undefined || turbineId === null)
+            throw new globalThis.Error("The parameter 'turbineId' must be defined.");
+        url_ = url_.replace("{turbineId}", encodeURIComponent("" + turbineId));
+        if (bladePitch === null)
+            throw new globalThis.Error("The parameter 'bladePitch' cannot be null.");
+        else if (bladePitch !== undefined)
+            url_ += "bladePitch=" + encodeURIComponent("" + bladePitch) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSetBladePitch(_response);
+        });
+    }
+
+    protected processSetBladePitch(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    publishAlert(turbineId: string, alert: Alert): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/farm/Mindst2Commits/windmill/{turbineId}/alert";
+        if (turbineId === undefined || turbineId === null)
+            throw new globalThis.Error("The parameter 'turbineId' must be defined.");
+        url_ = url_.replace("{turbineId}", encodeURIComponent("" + turbineId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(alert);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
                 "Accept": "application/octet-stream"
             }
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetLatestTelemetry(_response);
+            return this.processPublishAlert(_response);
         });
     }
 
-    protected processGetLatestTelemetry(response: Response): Promise<FileResponse> {
+    protected processPublishAlert(response: Response): Promise<FileResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200 || status === 206) {
@@ -101,6 +366,17 @@ export class TelemetryClient {
             });
         }
         return Promise.resolve<FileResponse>(null as any);
+    }
+}
+
+export class TelemetryClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
     }
 
     getTelemetryForTurbine(turbineId: string): Promise<FileResponse> {
@@ -142,43 +418,6 @@ export class TelemetryClient {
             });
         }
         return Promise.resolve<FileResponse>(null as any);
-    }
-
-    getTelemetry(connectionId: string | undefined): Promise<RealtimeListenResponseOfListOfTelemetry> {
-        let url_ = this.baseUrl + "/api/Telemetry/GetTelemetry?";
-        if (connectionId === null)
-            throw new globalThis.Error("The parameter 'connectionId' cannot be null.");
-        else if (connectionId !== undefined)
-            url_ += "connectionId=" + encodeURIComponent("" + connectionId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetTelemetry(_response);
-        });
-    }
-
-    protected processGetTelemetry(response: Response): Promise<RealtimeListenResponseOfListOfTelemetry> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as RealtimeListenResponseOfListOfTelemetry;
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<RealtimeListenResponseOfListOfTelemetry>(null as any);
     }
 
     switchGroup(connectionId: string | undefined, group: string | undefined, previousGroup: string | null | undefined): Promise<void> {
@@ -252,33 +491,13 @@ export class TelemetryClient {
     }
 }
 
-/** Returned by subscribe endpoints so the client knows which SSE group to listen on. */
-export interface RealtimeListenResponse {
-    group?: string;
-}
-
-/** Returned by subscribe endpoints with initial data. The client receives the current state immediately and knows which SSE group to listen on for subsequent updates. */
-export interface RealtimeListenResponseOfListOfTelemetry extends RealtimeListenResponse {
-    data?: Telemetry[] | undefined;
-}
-
-export interface Telemetry {
+export interface Alert {
     id?: string;
     turbineid?: string;
-    turbinename?: string;
     farmid?: string;
     timestamp?: string | undefined;
-    windspeed?: number | undefined;
-    winddirection?: number | undefined;
-    ambienttemperature?: number | undefined;
-    rotorspeed?: number | undefined;
-    poweroutput?: number | undefined;
-    nacelledirection?: number | undefined;
-    bladepitch?: number | undefined;
-    generatortemp?: number | undefined;
-    gearboxtemp?: number | undefined;
-    vibration?: number | undefined;
-    status?: string;
+    severity?: string;
+    message?: string;
 }
 
 export interface FileResponse {

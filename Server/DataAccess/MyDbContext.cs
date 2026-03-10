@@ -14,6 +14,8 @@ public partial class MyDbContext : DbContext
     public virtual DbSet<Alert> Alerts { get; set; }
 
     public virtual DbSet<Telemetry> Telemetries { get; set; }
+    
+    public virtual DbSet<CommandHistory> CommandHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,7 +56,8 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Winddirection).HasColumnName("winddirection");
             entity.Property(e => e.Windspeed).HasColumnName("windspeed");
         });
-
+        
+        
         OnModelCreatingPartial(modelBuilder);
     }
 
