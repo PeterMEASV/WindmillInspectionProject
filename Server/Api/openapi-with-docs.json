@@ -39,27 +39,6 @@
         }
       }
     },
-    "/api/Telemetry/latest": {
-      "get": {
-        "tags": [
-          "Telemetry"
-        ],
-        "operationId": "Telemetry_GetLatestTelemetry",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Telemetry/{turbineId}": {
       "get": {
         "tags": [
@@ -85,36 +64,6 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Telemetry/GetTelemetry": {
-      "get": {
-        "tags": [
-          "Telemetry"
-        ],
-        "operationId": "Telemetry_GetTelemetry",
-        "parameters": [
-          {
-            "name": "connectionId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RealtimeListenResponseOfListOfTelemetry"
                 }
               }
             }
@@ -157,7 +106,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Telemetry"
+                }
+              }
+            }
           }
         }
       }
@@ -178,27 +134,6 @@
   },
   "components": {
     "schemas": {
-      "RealtimeListenResponseOfListOfTelemetry": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/RealtimeListenResponse"
-          },
-          {
-            "type": "object",
-            "description": "Returned by subscribe endpoints with initial data. The client receives the current state\nimmediately and knows which SSE group to listen on for subsequent updates.",
-            "additionalProperties": false,
-            "properties": {
-              "data": {
-                "type": "array",
-                "nullable": true,
-                "items": {
-                  "$ref": "#/components/schemas/Telemetry"
-                }
-              }
-            }
-          }
-        ]
-      },
       "Telemetry": {
         "type": "object",
         "additionalProperties": false,
@@ -271,16 +206,6 @@
             "nullable": true
           },
           "status": {
-            "type": "string"
-          }
-        }
-      },
-      "RealtimeListenResponse": {
-        "type": "object",
-        "description": "Returned by subscribe endpoints so the client knows which SSE group to listen on.",
-        "additionalProperties": false,
-        "properties": {
-          "group": {
             "type": "string"
           }
         }

@@ -1,17 +1,67 @@
 import './Dashboard.css'
-import {useState} from "react";
+import {useState, useEffect} from "react";
+import {useStream} from "./UseStream.tsx";
+import type {Telemetry} from "./generated-ts-client.ts";
+import {telemetryClient} from "./baseUrl.ts";
+import {useAtomValue} from "jotai";
+import {connectionIdAtom} from "./Atoms.tsx";
+import TelemetryCard from "./Components/TelemetryCard.tsx";
 
 function Dashboard() {
 
     const alarms = 1;
-    const turbines = ["Alpha", "Beta", "Charlie", "Delta"]
+    const turbines = ["turbine-alpha", "turbine-beta", "turbine-gamma", "turbine-delta"]
     const [selectedTurbine, setSelectedTurbine] = useState<string | null>("Select a Turbine");
+    const stream = useStream();
+    const connectionId = useAtomValue(connectionIdAtom);
+    const [telemetries, setTelemetries] = useState<Telemetry[]>([]);
+
 
     const handleTurbineSelect = (turbine: string) => {
-        setSelectedTurbine(turbine);
         console.log("Selected turbine:", turbine);
-        // Add your logic here
+
+        if (connectionId) {
+            telemetryClient.switchGroup(connectionId, turbine, selectedTurbine ?? undefined);
+        } else {
+            console.warn("Connection ID is not here. How did you get here?");
+        }
+        
+        setSelectedTurbine(turbine);
     }
+
+    // Set up stream listener AFTER selectedTurbine changes
+    useEffect(() => {
+        if (!selectedTurbine || selectedTurbine === "Select a Turbine") return;
+
+        console.log(`[Dashboard] Setting up listener for: ${selectedTurbine}`);
+        
+        // Clear old data when turbine changes
+        setTelemetries([]);
+
+        const unsubscribe = stream.on<Telemetry>(selectedTurbine, selectedTurbine, (dto) => {
+            console.log(`[Dashboard] Received telemetry:`, dto);
+            setTelemetries(prev => {
+                // Only add if it's actually new (check by ID or timestamp)
+                const isDuplicate = prev.some(t => 
+                    t.id === dto.id || 
+                    (t.timestamp === dto.timestamp && t.turbineid === dto.turbineid)
+                );
+                
+                if (isDuplicate) {
+                    console.log(`[Dashboard] Duplicate telemetry ignored:`, dto.id);
+                    return prev;
+                }
+                
+                // Add new data and keep last 20
+                return [...prev, dto].slice(-20);
+            });
+        });
+
+        return () => {
+            console.log(`[Dashboard] Cleaning up listener for: ${selectedTurbine}`);
+            unsubscribe();
+        };
+    }, [selectedTurbine, stream]);
 
     return (
         <>
@@ -45,33 +95,91 @@ function Dashboard() {
                 </button>
             </div>
         </div>
-        <div className="screen-content flex flex-wrap gap-4">
-            <div className="card w-96 bg-base-200 card-lg shadow-md border-2 border-base-300">
-                <div className="card-body">
-                    <h2 className="card-title">Large Card</h2>
-                    <p>A card component has a figure, a body part, and inside body there are title and actions parts</p>
-                    <div className="justify-end card-actions">
-                        <button className="btn btn-primary">Buy Now</button>
-                    </div>
-                </div>
+        <div className="screen-content p-4">
+            <div className="w-full text-sm text-gray-500 mb-4">
+                Data points: {telemetries.length}
             </div>
-            <div className="card w-96 bg-base-200 card-lg shadow-md border-2 border-base-300">
-                <div className="card-body">
-                    <h2 className="card-title">Large Card</h2>
-                    <p>A card component has a figure, a body part, and inside body there are title and actions parts</p>
-                    <div className="justify-end card-actions">
-                        <button className="btn btn-primary">Buy Now</button>
-                    </div>
-                </div>
-            </div>
-            <div className="card w-96 bg-base-200 card-lg shadow-md border-2 border-base-300">
-                <div className="card-body">
-                    <h2 className="card-title">Large Card</h2>
-                    <p>A card component has a figure, a body part, and inside body there are title and actions parts</p>
-                    <div className="justify-end card-actions">
-                        <button className="btn btn-primary">Buy Now</button>
-                    </div>
-                </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+                <TelemetryCard 
+                    title="Windspeed"
+                    telemetries={telemetries}
+                    dataKey="windspeed"
+                    color="rgb(16, 185, 129)"
+                    unit=" m/s"
+                />
+                
+                <TelemetryCard 
+                    title="Wind Direction"
+                    telemetries={telemetries}
+                    dataKey="winddirection"
+                    color="rgb(249, 115, 22)"
+                    unit="°"
+                />
+                
+                <TelemetryCard 
+                    title="Ambient Temperature"
+                    telemetries={telemetries}
+                    dataKey="ambienttemperature"
+                    color="rgb(236, 72, 153)"
+                    unit="°C"
+                />
+
+                <TelemetryCard
+                    title="Rotor Speed"
+                    telemetries={telemetries}
+                    dataKey="rotorspeed"
+                    color="rgb(139, 92, 246)"
+                    unit=" RPM"
+                />
+
+                <TelemetryCard
+                    title="Power Output"
+                    telemetries={telemetries}
+                    dataKey="poweroutput"
+                    color="rgb(59, 130, 246)"
+                    unit=" kW"
+                />
+
+                <TelemetryCard
+                    title="Nacelle Direction"
+                    telemetries={telemetries}
+                    dataKey="nacelledirection"
+                    color="rgb(14, 165, 233)"
+                    unit="°"
+                />
+
+                <TelemetryCard
+                    title="Blade Pitch"
+                    telemetries={telemetries}
+                    dataKey="bladepitch"
+                    color="rgb(168, 85, 247)"
+                    unit="°"
+                />
+
+                <TelemetryCard
+                    title="Generator Temperature"
+                    telemetries={telemetries}
+                    dataKey="generatortemp"
+                    color="rgb(234, 179, 8)"
+                    unit="°C"
+                />
+
+                <TelemetryCard
+                    title="Gearbox Temperature"
+                    telemetries={telemetries}
+                    dataKey="gearboxtemp"
+                    color="rgb(239, 68, 68)"
+                    unit="°C"
+                />
+
+                <TelemetryCard
+                    title="Vibration"
+                    telemetries={telemetries}
+                    dataKey="vibration"
+                    color="rgb(6, 182, 212)"
+                    unit=" mm/s"
+                />
             </div>
         </div>
         </>

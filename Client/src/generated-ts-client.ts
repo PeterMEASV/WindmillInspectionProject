@@ -65,44 +65,6 @@ export class TelemetryClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    getLatestTelemetry(): Promise<FileResponse> {
-        let url_ = this.baseUrl + "/api/Telemetry/latest";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/octet-stream"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetLatestTelemetry(_response);
-        });
-    }
-
-    protected processGetLatestTelemetry(response: Response): Promise<FileResponse> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200 || status === 206) {
-            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
-            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
-            if (fileName) {
-                fileName = decodeURIComponent(fileName);
-            } else {
-                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
-                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
-            }
-            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<FileResponse>(null as any);
-    }
-
     getTelemetryForTurbine(turbineId: string): Promise<FileResponse> {
         let url_ = this.baseUrl + "/api/Telemetry/{turbineId}";
         if (turbineId === undefined || turbineId === null)
@@ -144,44 +106,7 @@ export class TelemetryClient {
         return Promise.resolve<FileResponse>(null as any);
     }
 
-    getTelemetry(connectionId: string | undefined): Promise<RealtimeListenResponseOfListOfTelemetry> {
-        let url_ = this.baseUrl + "/api/Telemetry/GetTelemetry?";
-        if (connectionId === null)
-            throw new globalThis.Error("The parameter 'connectionId' cannot be null.");
-        else if (connectionId !== undefined)
-            url_ += "connectionId=" + encodeURIComponent("" + connectionId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetTelemetry(_response);
-        });
-    }
-
-    protected processGetTelemetry(response: Response): Promise<RealtimeListenResponseOfListOfTelemetry> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as RealtimeListenResponseOfListOfTelemetry;
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<RealtimeListenResponseOfListOfTelemetry>(null as any);
-    }
-
-    switchGroup(connectionId: string | undefined, group: string | undefined, previousGroup: string | null | undefined): Promise<void> {
+    switchGroup(connectionId: string | undefined, group: string | undefined, previousGroup: string | null | undefined): Promise<Telemetry> {
         let url_ = this.baseUrl + "/api/Telemetry/SwitchGroup?";
         if (connectionId === null)
             throw new globalThis.Error("The parameter 'connectionId' cannot be null.");
@@ -198,6 +123,7 @@ export class TelemetryClient {
         let options_: RequestInit = {
             method: "POST",
             headers: {
+                "Accept": "application/json"
             }
         };
 
@@ -206,19 +132,21 @@ export class TelemetryClient {
         });
     }
 
-    protected processSwitchGroup(response: Response): Promise<void> {
+    protected processSwitchGroup(response: Response): Promise<Telemetry> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as Telemetry;
+            return result200;
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<Telemetry>(null as any);
     }
 
     connect(): Promise<void> {
@@ -250,16 +178,6 @@ export class TelemetryClient {
         }
         return Promise.resolve<void>(null as any);
     }
-}
-
-/** Returned by subscribe endpoints so the client knows which SSE group to listen on. */
-export interface RealtimeListenResponse {
-    group?: string;
-}
-
-/** Returned by subscribe endpoints with initial data. The client receives the current state immediately and knows which SSE group to listen on for subsequent updates. */
-export interface RealtimeListenResponseOfListOfTelemetry extends RealtimeListenResponse {
-    data?: Telemetry[] | undefined;
 }
 
 export interface Telemetry {

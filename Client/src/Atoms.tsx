@@ -4,6 +4,7 @@ import Home from "./Home.tsx";
 import Login from "./Login.tsx";
 import Dashboard from "./Dashboard.tsx";
 
+export const connectionIdAtom = atom<string | null>(null);
 export const routesAtom = atom<RouteObject[]>([
     {
         path: "/",

@@ -28,7 +28,7 @@ public class TelemetryController(ISseBackplane backplane, MyDbContext context, I
     
     
     [HttpPost(nameof(SwitchGroup))]
-    public async Task SwitchGroup(string connectionId, string group, string? previousGroup)
+    public async Task<Telemetry?> SwitchGroup(string connectionId, string group, string? previousGroup)
     {
         if (previousGroup != null)
         {
@@ -37,6 +37,7 @@ public class TelemetryController(ISseBackplane backplane, MyDbContext context, I
         }
         await backplane.Groups.AddToGroupAsync(connectionId, group);
         Console.WriteLine($"Subscribe called for {connectionId}");
+        return null;
     }
     
 }
