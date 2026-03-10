@@ -122,6 +122,46 @@
         }
       }
     },
+    "/api/Telemetry/SwitchGroup": {
+      "post": {
+        "tags": [
+          "Telemetry"
+        ],
+        "operationId": "Telemetry_SwitchGroup",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "previousGroup",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/Telemetry/sse": {
       "get": {
         "tags": [

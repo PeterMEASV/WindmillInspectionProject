@@ -34,7 +34,7 @@ app.UseSwaggerUi();
 await app.GenerateApiClientsFromOpenApi("/../../client/src/generated-ts-client.ts");
 
 var mqtt = app.Services.GetRequiredService<IMqttClientService>();
-await mqtt.ConnectAsync("broker.hivemq.com", 1883);
+await mqtt.ConnectAsync("broker.hivemq.com", 8883, useTls:true);
 
 
 app.Run();

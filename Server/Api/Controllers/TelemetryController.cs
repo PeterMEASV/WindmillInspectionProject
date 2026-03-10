@@ -13,16 +13,6 @@ namespace Api.Controllers;
 public class TelemetryController(ISseBackplane backplane, MyDbContext context, IRealtimeManager realtimeManager) 
     : RealtimeControllerBase(backplane)
 {
-    [HttpGet("latest")]
-    public async Task<IActionResult> GetLatestTelemetry()
-    {
-        var data = await context.Telemetries
-            .GroupBy(t => t.Turbineid)
-            .Select(g => g.OrderByDescending(t => t.Timestamp).First())
-            .ToListAsync();
-
-        return Ok(data);
-    }
     
     [HttpGet("{turbineId}")]
     public async Task<IActionResult> GetTelemetryForTurbine(string turbineId)
@@ -35,24 +25,18 @@ public class TelemetryController(ISseBackplane backplane, MyDbContext context, I
 
         return Ok(data);
     }
-
-    [HttpGet(nameof(GetTelemetry))]
-    public async Task<RealtimeListenResponse<List<Telemetry>>> GetTelemetry(string connectionId)
+    
+    
+    [HttpPost(nameof(SwitchGroup))]
+    public async Task SwitchGroup(string connectionId, string group, string? previousGroup)
     {
-        var group = "telemetry";
+        if (previousGroup != null)
+        {
+            await backplane.Groups.RemoveFromGroupAsync(connectionId, previousGroup);
+            Console.WriteLine($"Unsubscribe called for {connectionId}");
+        }
         await backplane.Groups.AddToGroupAsync(connectionId, group);
         Console.WriteLine($"Subscribe called for {connectionId}");
-        realtimeManager.Subscribe<MyDbContext>(
-            connectionId,
-            group,
-            criteria: snapshot => snapshot.HasAdded<Telemetry>(),
-            query: async context => await context.Telemetries
-                .OrderByDescending(t => t.Timestamp)
-                .Take(1)
-                .ToListAsync()
-        );
-        
-        return new RealtimeListenResponse<List<Telemetry>>(group, context.Telemetries.ToList());
     }
     
 }
