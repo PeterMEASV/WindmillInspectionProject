@@ -1,4 +1,5 @@
 using api;
+using Api.Services;
 using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Mqtt.Controllers;
@@ -24,7 +25,7 @@ builder.Services.AddControllers();
 builder.Services.AddInMemorySseBackplane();
 builder.Services.AddEfRealtime();
 builder.Services.AddOpenApiDocument();
-
+builder.Services.AddScoped<CommandHistoryService>();
 
 var app = builder.Build();
 app.UseCors(config => config.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());

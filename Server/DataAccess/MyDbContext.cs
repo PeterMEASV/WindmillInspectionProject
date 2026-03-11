@@ -13,9 +13,9 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<Alert> Alerts { get; set; }
 
+    public virtual DbSet<Commandhistory> Commandhistories { get; set; }
+
     public virtual DbSet<Telemetry> Telemetries { get; set; }
-    
-    public virtual DbSet<CommandHistory> CommandHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +31,22 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Severity).HasColumnName("severity");
             entity.Property(e => e.Timestamp).HasColumnName("timestamp");
             entity.Property(e => e.Turbineid).HasColumnName("turbineid");
+        });
+
+        modelBuilder.Entity<Commandhistory>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("commandhistory_pkey");
+
+            entity.ToTable("commandhistory", "windmillinspection");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Action).HasColumnName("action");
+            entity.Property(e => e.Angle).HasColumnName("angle");
+            entity.Property(e => e.Operatorid).HasColumnName("operatorid");
+            entity.Property(e => e.Reason).HasColumnName("reason");
+            entity.Property(e => e.Timestamp).HasColumnName("timestamp");
+            entity.Property(e => e.Turbineid).HasColumnName("turbineid");
+            entity.Property(e => e.Value).HasColumnName("value");
         });
 
         modelBuilder.Entity<Telemetry>(entity =>
@@ -56,8 +72,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Winddirection).HasColumnName("winddirection");
             entity.Property(e => e.Windspeed).HasColumnName("windspeed");
         });
-        
-        
+
         OnModelCreatingPartial(modelBuilder);
     }
 

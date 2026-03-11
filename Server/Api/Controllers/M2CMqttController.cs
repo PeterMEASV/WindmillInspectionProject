@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Api.Services;
 using DataAccess;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Mqtt.Controllers;
@@ -9,8 +10,9 @@ using StateleSSE.AspNetCore;
 
 namespace Api.Controllers;
 
-public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext context, IMqttClientService mqtt, ISseBackplane backplane) : MqttController
+public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext context, IMqttClientService mqtt, ISseBackplane backplane, CommandHistoryService commandHistoryService) : MqttController
 {
+    
     [MqttRoute("farm/Mindst2Commits/windmill/{turbineId}/telemetry")]
     public async Task SubscribeToWindmillTelemetry(Telemetry data, string turbineId)
     {
@@ -54,6 +56,8 @@ public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext co
         var command = Command.SetInterval(interval);
         await mqtt.PublishAsync($"farm/Mindst2Commits/windmill/{turbineId}/command", 
             JsonSerializer.Serialize(command));
+
+        await commandHistoryService.SaveCommandHistory(command, turbineId);
     }
     [HttpPost("farm/Mindst2Commits/windmill/{turbineId}/command/stop")]
     public async Task StopTurbine(string turbineId, [FromQuery] string? reason = null)
@@ -61,6 +65,8 @@ public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext co
         var command = Command.Stop(reason);
         await mqtt.PublishAsync($"farm/Mindst2Commits/windmill/{turbineId}/command", 
             JsonSerializer.Serialize(command));
+
+        await commandHistoryService.SaveCommandHistory(command, turbineId);
     }
     [HttpPost("farm/Mindst2Commits/windmill/{turbineId}/command/start")]
     public async Task StartTurbine(string turbineId)
@@ -68,6 +74,8 @@ public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext co
         var command = Command.Start();
         await mqtt.PublishAsync($"farm/Mindst2Commits/windmill/{turbineId}/command", 
             JsonSerializer.Serialize(command));
+        
+        await commandHistoryService.SaveCommandHistory(command, turbineId);
     }
     [HttpPost("farm/Mindst2Commits/windmill/{turbineId}/command/blade-pitch")]
     public async Task SetBladePitch(string turbineId, int bladePitch)
@@ -75,6 +83,9 @@ public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext co
         var command = Command.SetPitch(bladePitch);
         await mqtt.PublishAsync($"farm/Mindst2Commits/windmill/{turbineId}/command", 
             JsonSerializer.Serialize(command));
+
+        await commandHistoryService.SaveCommandHistory(command, turbineId);
+       
     }
     
     

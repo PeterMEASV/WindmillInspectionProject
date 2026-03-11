@@ -4,20 +4,28 @@ namespace Api.Services;
 
 public class CommandHistoryService
 {
-    public async Task SaveCommandHistory(MyDbContext context,Command command, string turbineId, string? operatorId = null)
+    private readonly MyDbContext _context;
+
+    public CommandHistoryService(MyDbContext context)
     {
-        var history = new CommandHistory
+        _context = context;
+    }
+
+    public async Task SaveCommandHistory(Command command, string turbineId, string? operatorId = null)
+    {
+        var history = new Commandhistory
         {
-            TurbineId = turbineId,
+            Id = Guid.NewGuid().ToString(),
+            Turbineid = turbineId,
             Action = command.Action,
             Value = command.Value,
             Angle = command.Angle,
             Reason = command.Reason,
             Timestamp = DateTime.UtcNow,
-            //OperatorId = operatorId
+            Operatorid = operatorId
         };
 
-        context.CommandHistories.Add(history);
-        await context.SaveChangesAsync();
+        _context.Commandhistories.Add(history);
+        await _context.SaveChangesAsync();
     }
 }
