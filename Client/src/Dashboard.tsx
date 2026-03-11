@@ -10,8 +10,15 @@ import TelemetryCard from "./Components/TelemetryCard.tsx";
 function Dashboard() {
 
     const alarms = 1;
+
+    // improve to be scalable. This is just sad man
     const turbines = ["turbine-alpha", "turbine-beta", "turbine-gamma", "turbine-delta"]
+    const commands = ["setInterval", "stop", "start", "setPitch"]
     const [selectedTurbine, setSelectedTurbine] = useState<string | null>("Select a Turbine");
+    const [selectedCommand, setSelectedCommand] = useState<string | null>("Select a Command");
+    const [isInputDisabled, setIsInputDisabled] = useState<boolean>(true);
+    const [inputType, setInputType] = useState<string | null>(null);
+    const [placeholder, setPlaceholder] = useState<string | null>(null);
     const stream = useStream();
     const connectionId = useAtomValue(connectionIdAtom);
     const [telemetries, setTelemetries] = useState<Telemetry[]>([]);
@@ -27,6 +34,36 @@ function Dashboard() {
         }
         
         setSelectedTurbine(turbine);
+    }
+
+    const handleCommandSelect = (command: string) => {
+        console.log("Selected command:", command);
+
+        setSelectedCommand(command);
+
+        if (command == "start")
+        {
+            setIsInputDisabled(true);
+            setPlaceholder("")
+        }
+        else
+        {
+            setIsInputDisabled(false);
+        }
+
+        if(command == "setInterval" || command == "setPitch")
+        {
+            setInputType("number");
+            setPlaceholder("Enter number");
+        }
+        else if(command == "stop")
+        {
+            setInputType("text")
+            setPlaceholder("Enter reason for stopping.");
+        }
+        
+        // this exists to just close the dropdown like 200 lines down
+        (document.activeElement as HTMLElement)?.blur();
     }
 
     // Set up stream listener AFTER selectedTurbine changes
@@ -78,6 +115,11 @@ function Dashboard() {
                             <li key={index}><a onClick={() => handleTurbineSelect(turbine)}>{turbine}</a></li>
                         ))}
                     </ul>
+                </div>
+                <div className="Command-button">
+                    <button className="btn btn-ghost px-6 text-lg" onClick={()=>document.getElementById('my_modal_1').showModal()}>
+                        Commands
+                    </button>
                 </div>
             </div>
             <div className="navbar-center">
@@ -181,6 +223,35 @@ function Dashboard() {
                     unit=" mm/s"
                 />
             </div>
+
+            {/* Open the modal using document.getElementById('ID').showModal() method */}
+            <dialog id="my_modal_1" className="modal">
+                <div className="modal-box h-[300px] flex flex-col">
+                    <div className="flex-grow">
+                        <h3 className="font-bold text-lg">Commands</h3>
+                        <p className="py-4">Select a command from the list.</p>
+                        <div className="dropdown dropdown-bottom block">
+                            <div tabIndex={0} role="button" className="btn btn-ghost px-3 text-lg">
+                                {selectedCommand}
+                            </div>
+                            <ul
+                                tabIndex={-1}
+                                className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
+                                {commands.map((command, index) => (
+                                    <li key={index}><a onClick={() => handleCommandSelect(command)}>{command}</a></li>
+                                ))}
+                            </ul>
+                        </div>
+                        <input type={inputType} placeholder={placeholder} className="input input-bordered w-full max-w-xs mt-4" disabled={isInputDisabled} />
+                    </div>
+
+                    <div className="modal-action justify-end mt-auto">
+                        <button className="btn" onClick={() => document.getElementById('my_modal_1')?.close()}>
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </dialog>
         </div>
         </>
 
