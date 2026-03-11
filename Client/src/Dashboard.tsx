@@ -2,7 +2,7 @@ import './Dashboard.css'
 import {useState, useEffect} from "react";
 import {useStream} from "./UseStream.tsx";
 import type {Telemetry} from "./generated-ts-client.ts";
-import {telemetryClient} from "./baseUrl.ts";
+import {MqttClient, telemetryClient} from "./baseUrl.ts";
 import {useAtomValue} from "jotai";
 import {connectionIdAtom} from "./Atoms.tsx";
 import TelemetryCard from "./Components/TelemetryCard.tsx";
@@ -19,6 +19,7 @@ function Dashboard() {
     const [isInputDisabled, setIsInputDisabled] = useState<boolean>(true);
     const [inputType, setInputType] = useState<string | null>(null);
     const [placeholder, setPlaceholder] = useState<string | null>(null);
+    const [inputValue, setInputValue] = useState<string | null>(null);
     const stream = useStream();
     const connectionId = useAtomValue(connectionIdAtom);
     const [telemetries, setTelemetries] = useState<Telemetry[]>([]);
@@ -65,6 +66,33 @@ function Dashboard() {
         // this exists to just close the dropdown like 200 lines down
         (document.activeElement as HTMLElement)?.blur();
     }
+
+    const handleSendCommand = () => {
+        switch (selectedCommand) {
+            case "setInterval":
+                if(selectedTurbine != null && inputValue != null)
+                    MqttClient.setInterval(selectedTurbine, Number(inputValue));
+                console.log(Number(inputValue));
+                break;
+
+            case "stop":
+                if(selectedTurbine != null && inputValue != null)
+                    MqttClient.stopTurbine(selectedTurbine, inputValue);
+                break;
+
+            case "start":
+                if(selectedTurbine != null)
+                    MqttClient.startTurbine(selectedTurbine);
+                break;
+
+            case "setPitch":
+                if(selectedTurbine != null && inputValue != null)
+                    MqttClient.setBladePitch(selectedTurbine, Number(inputValue));
+                console.log(Number(inputValue));
+                break;
+        }
+    }
+
 
     // Set up stream listener AFTER selectedTurbine changes
     useEffect(() => {
@@ -117,7 +145,7 @@ function Dashboard() {
                     </ul>
                 </div>
                 <div className="Command-button">
-                    <button className="btn btn-ghost px-6 text-lg" onClick={()=>document.getElementById('my_modal_1').showModal()}>
+                    <button className="btn btn-ghost px-6 text-lg" onClick={()=> (document.getElementById('my_modal_1') as HTMLDialogElement)?.showModal()}>
                         Commands
                     </button>
                 </div>
@@ -242,11 +270,15 @@ function Dashboard() {
                                 ))}
                             </ul>
                         </div>
-                        <input type={inputType} placeholder={placeholder} className="input input-bordered w-full max-w-xs mt-4" disabled={isInputDisabled} />
+                        <input type={inputType ?? undefined} placeholder={placeholder ?? undefined} className="input input-bordered w-full max-w-xs mt-4" disabled={isInputDisabled} value={inputValue ?? undefined} onChange={(e) => setInputValue(e.target.value)} />
                     </div>
 
-                    <div className="modal-action justify-end mt-auto">
-                        <button className="btn" onClick={() => document.getElementById('my_modal_1')?.close()}>
+                    <div className="modal-action justify-end mt-auto gap-2">
+                        <button className="btn px-6 py-3" onClick={() => handleSendCommand()}>
+                            Send Command
+                        </button>
+
+                        <button className="btn px-6 py-3" onClick={() => (document.getElementById('my_modal_1') as HTMLDialogElement)?.close()}>
                             Close
                         </button>
                     </div>

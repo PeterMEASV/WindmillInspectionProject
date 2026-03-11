@@ -3,9 +3,7 @@ using Api.Services;
 using DataAccess;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Mqtt.Controllers;
-using Newtonsoft.Json.Linq;
 using StateleSSE.AspNetCore;
 
 namespace Api.Controllers;
@@ -51,40 +49,48 @@ public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext co
     }
     
     [HttpPost("farm/Mindst2Commits/windmill/{turbineId}/command/set-interval")]
-    public async Task SetInterval(string turbineId, int interval)
+    public async Task<ActionResult> SetInterval(string turbineId, int interval)
     {
         var command = Command.SetInterval(interval);
         await mqtt.PublishAsync($"farm/Mindst2Commits/windmill/{turbineId}/command", 
             JsonSerializer.Serialize(command));
 
         await commandHistoryService.SaveCommandHistory(command, turbineId);
+        return new OkResult();
     }
     [HttpPost("farm/Mindst2Commits/windmill/{turbineId}/command/stop")]
-    public async Task StopTurbine(string turbineId, [FromQuery] string? reason = null)
+    public async Task<ActionResult> StopTurbine(string turbineId, [FromQuery] string? reason = null)
     {
         var command = Command.Stop(reason);
         await mqtt.PublishAsync($"farm/Mindst2Commits/windmill/{turbineId}/command", 
             JsonSerializer.Serialize(command));
 
         await commandHistoryService.SaveCommandHistory(command, turbineId);
+        
+        return new OkResult();
     }
+    
     [HttpPost("farm/Mindst2Commits/windmill/{turbineId}/command/start")]
-    public async Task StartTurbine(string turbineId)
+    public async Task<ActionResult> StartTurbine(string turbineId)
     {
         var command = Command.Start();
         await mqtt.PublishAsync($"farm/Mindst2Commits/windmill/{turbineId}/command", 
             JsonSerializer.Serialize(command));
         
         await commandHistoryService.SaveCommandHistory(command, turbineId);
+        
+        return new OkResult();
     }
     [HttpPost("farm/Mindst2Commits/windmill/{turbineId}/command/blade-pitch")]
-    public async Task SetBladePitch(string turbineId, int bladePitch)
+    public async Task<ActionResult> SetBladePitch(string turbineId, int bladePitch)
     {
         var command = Command.SetPitch(bladePitch);
         await mqtt.PublishAsync($"farm/Mindst2Commits/windmill/{turbineId}/command", 
             JsonSerializer.Serialize(command));
 
         await commandHistoryService.SaveCommandHistory(command, turbineId);
+            
+        return new OkResult();
        
     }
     
