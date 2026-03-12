@@ -8,6 +8,7 @@ import {connectionIdAtom} from "./Atoms.tsx";
 import TelemetryCard from "./Components/TelemetryCard.tsx";
 import AlertModal from "./Components/AlertModal.tsx";
 import {finalUrl} from "./baseUrl.ts";
+import {ToastContainer, toast, Bounce} from 'react-toastify';
 
 function DashboardContent() {
 
@@ -30,6 +31,7 @@ function DashboardContent() {
     useEffect(() => {
         if (stream.connectionId) {
             setConnectionId(stream.connectionId);
+            toast.success("Connected to server!");
         }
     }, [stream.connectionId, setConnectionId]);
 
@@ -41,6 +43,7 @@ function DashboardContent() {
             (dto) => {
                 console.log("🚨 Alert received:", dto);
                 setAlerts(prevAlerts => [...prevAlerts, { ...dto, resolved: false }]);
+                toast.error("Alert received for " + dto.turbineid + "!", {})
             }
         );
 
@@ -62,6 +65,7 @@ function DashboardContent() {
 
         if (connectionId) {
             telemetryClient.switchGroup(connectionId, turbine, selectedTurbine ?? undefined);
+            toast.success("Switched to " + turbine + "!", {})
         } else {
             console.warn("Connection ID is not here. How did you get here?");
         }
@@ -106,6 +110,7 @@ function DashboardContent() {
                     if(Number(inputValue) >= 1 && Number(inputValue) <= 60) {
                         MqttClient.setInterval(selectedTurbine, Number(inputValue));
                         console.log(Number(inputValue));
+                        toast.success("Set interval to " + inputValue + " seconds!", {})
                     }
                     else
                     {
@@ -116,6 +121,7 @@ function DashboardContent() {
             case "stop":
                 if(selectedTurbine != null && inputValue != null) {
                     MqttClient.stopTurbine(selectedTurbine, inputValue);
+                    toast.success("Stopped turbine!", {})
                 }
                 else
                 {
@@ -124,8 +130,10 @@ function DashboardContent() {
                 break;
 
             case "start":
-                if(selectedTurbine != null)
+                if(selectedTurbine != null) {
                     MqttClient.startTurbine(selectedTurbine);
+                    toast.success("Started turbine!", {})
+                }
                 break;
 
             case "setPitch":
@@ -133,6 +141,7 @@ function DashboardContent() {
                     if(Number(inputValue) >= 0 && Number(inputValue) <= 30) {
                         MqttClient.setBladePitch(selectedTurbine, Number(inputValue));
                         console.log(Number(inputValue));
+                        toast.success("Set pitch to " + inputValue + " degrees!", {})
                     }
                     else {
                         alert("Pitch must be between 0 and 30 degrees.");
@@ -341,6 +350,19 @@ function DashboardContent() {
                 {/* Alert Modal */}
                 <AlertModal alerts={alerts} onResolveAlert={handleResolveAlert} />
             </div>
+            <ToastContainer
+            position="bottom-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick={false}
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="dark"
+            transition={Bounce}
+            />
         </>
 
     )
