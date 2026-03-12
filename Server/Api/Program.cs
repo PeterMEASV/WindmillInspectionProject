@@ -1,6 +1,8 @@
 using api;
 using Api.Security;
 using Api.Services;
+using Api.Services.Classes;
+using Api.Services.Interfaces;
 using DataAccess;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +31,11 @@ builder.Services.AddEfRealtime();
 builder.Services.AddOpenApiDocument();
 builder.Services.AddScoped<CommandHistoryService>();
 builder.Services.AddScoped<IPasswordHasher<User>, KonciousArgon2idPasswordHasher>();
+builder.Services.AddScoped<ITelemetryService, TelemetryService>();
+builder.Services.AddControllers();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenService, JwtService>();
 
 var app = builder.Build();
 app.UseCors(config => config.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
