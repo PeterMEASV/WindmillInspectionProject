@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+﻿/*using System.Security.Cryptography;
 using System.Text;
 using DataAccess.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -40,4 +40,4 @@ public class KonciousArgon2idPasswordHasher : IPasswordHasher<User>
         };
         return hashAlgo.GetBytes(128);
     }
-}
+}*/

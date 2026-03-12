@@ -28,4 +28,18 @@ public class AlertsController(MyDbContext context) : ControllerBase
 
         return Ok(alerts);
     }
+
+    [HttpPatch]
+    public async Task<IActionResult> ResolveAlert(string id)
+    {
+        var alert = await context.Alerts.FindAsync(id);
+        if (alert == null)
+        {
+            return NotFound();
+        }
+
+        alert.Resolved = true;
+        await context.SaveChangesAsync();
+        return NoContent();
+    }
 }

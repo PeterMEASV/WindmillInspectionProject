@@ -25,20 +25,28 @@ function Dashboard() {
     const [alerts, setAlerts] = useState<Alert[]>([]);
 
     useEffect(() => {
-    if (!connectionId) return;
-    telemetryClient.subscribeToAllAlerts(connectionId);
+        if (!connectionId) return;
+        telemetryClient.subscribeToAllAlerts(connectionId);
 
-    const unsubscribe = stream.on<Alert>("alerts-all", "alerts-all",
-        (dto) => {
-            console.log("🚨 Alert received:", dto);
-            setAlerts(prevAlerts => [...prevAlerts, dto]);
-        }
-    );
+        const unsubscribe = stream.on<Alert>("alerts-all", "alerts-all",
+            (dto) => {
+                console.log("🚨 Alert received:", dto);
+                setAlerts(prevAlerts => [...prevAlerts, { ...dto, resolved: false }]);
+            }
+        );
 
-    return () => {
-        unsubscribe();
+        return () => {
+            unsubscribe();
+        };
+    }, [connectionId, stream]);
+
+    const handleResolveAlert = (alertId: string) => {
+        setAlerts(prevAlerts => 
+            prevAlerts.map(alert => 
+                alert.id === alertId ? { ...alert, resolved: true } : alert
+            )
+        );
     };
-}, [connectionId, stream]);
 
     const handleTurbineSelect = (turbine: string) => {
         console.log("Selected turbine:", turbine);
@@ -133,7 +141,7 @@ function Dashboard() {
                 }
                 
                 // Add new data and keep last 20
-                return [...prev, dto].slice(-20);
+                return [...prev, dto].slice(-50);
             });
         });
 
@@ -142,6 +150,8 @@ function Dashboard() {
             unsubscribe();
         };
     }, [selectedTurbine, stream]);
+
+    const unresolvedCount = alerts.filter(a => !a.resolved).length;
 
     return (
         <>
@@ -175,9 +185,9 @@ function Dashboard() {
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /> </svg>
 
-                    {alerts.length > 0 && (
+                    {unresolvedCount > 0 && (
                         <span className="badge badge-xs badge-primary indicator-item">
-                            {alerts.length >= 100 ? '99+' : alerts.length}
+                            {unresolvedCount >= 100 ? '99+' : unresolvedCount}
                         </span>
                     )}
                 </button>
@@ -304,7 +314,7 @@ function Dashboard() {
             </dialog>
 
             {/* Alert Modal */}
-            <AlertModal alerts={alerts} />
+            <AlertModal alerts={alerts} onResolveAlert={handleResolveAlert} />
         </div>
         </>
 

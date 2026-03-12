@@ -57,6 +57,35 @@
             }
           }
         }
+      },
+      "patch": {
+        "tags": [
+          "Alerts"
+        ],
+        "operationId": "Alerts_ResolveAlert",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/farm/Mindst2Commits/windmill/{turbineId}/command/set-interval": {
@@ -488,6 +517,9 @@
           },
           "message": {
             "type": "string"
+          },
+          "resolved": {
+            "type": "boolean"
           }
         }
       },

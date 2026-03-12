@@ -103,6 +103,7 @@ public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext co
         alert.Turbineid = turbineId;
         alert.Timestamp ??= DateTime.UtcNow;
         alert.Id = Guid.NewGuid().ToString();
+        alert.Resolved = false;
 
         // Save to DB
         context.Alerts.Add(alert);
