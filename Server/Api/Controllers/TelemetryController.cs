@@ -15,7 +15,7 @@ public class TelemetryController(ISseBackplane backplane, MyDbContext context, I
 {
     
     [HttpGet("{turbineId}")]
-    public async Task<IActionResult> GetTelemetryForTurbine(string turbineId)
+    public async Task<List<Telemetry>> GetTelemetryForTurbine(string turbineId)
     {
         var data = await context.Telemetries
             .Where(t => t.Turbineid == turbineId)
@@ -23,7 +23,7 @@ public class TelemetryController(ISseBackplane backplane, MyDbContext context, I
             .Take(100)
             .ToListAsync();
 
-        return Ok(data);
+        return data;
     }
 
     [HttpPost(nameof(AddToGroup))]

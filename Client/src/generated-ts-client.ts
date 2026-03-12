@@ -17,48 +17,6 @@ export class AlertsClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    createAlert(data: Alert): Promise<FileResponse> {
-        let url_ = this.baseUrl + "/api/Alerts";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(data);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/octet-stream"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCreateAlert(_response);
-        });
-    }
-
-    protected processCreateAlert(response: Response): Promise<FileResponse> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200 || status === 206) {
-            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
-            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
-            if (fileName) {
-                fileName = decodeURIComponent(fileName);
-            } else {
-                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
-                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
-            }
-            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<FileResponse>(null as any);
-    }
-
     getAlertsForTurbine(turbineId: string): Promise<FileResponse> {
         let url_ = this.baseUrl + "/api/Alerts/turbine/{turbineId}";
         if (turbineId === undefined || turbineId === null)
@@ -100,74 +58,42 @@ export class AlertsClient {
         return Promise.resolve<FileResponse>(null as any);
     }
 
-    switchAlertGroup(connectionId: string | undefined, turbineId: string | undefined, previousTurbineId: string | null | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/api/Alerts/SwitchAlertGroup?";
-        if (connectionId === null)
-            throw new globalThis.Error("The parameter 'connectionId' cannot be null.");
-        else if (connectionId !== undefined)
-            url_ += "connectionId=" + encodeURIComponent("" + connectionId) + "&";
-        if (turbineId === null)
-            throw new globalThis.Error("The parameter 'turbineId' cannot be null.");
-        else if (turbineId !== undefined)
-            url_ += "turbineId=" + encodeURIComponent("" + turbineId) + "&";
-        if (previousTurbineId !== undefined && previousTurbineId !== null)
-            url_ += "previousTurbineId=" + encodeURIComponent("" + previousTurbineId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSwitchAlertGroup(_response);
-        });
-    }
-
-    protected processSwitchAlertGroup(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    connect(): Promise<void> {
-        let url_ = this.baseUrl + "/api/Alerts/sse";
+    getAllAlerts(): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/api/Alerts";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
             method: "GET",
             headers: {
+                "Accept": "application/octet-stream"
             }
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processConnect(_response);
+            return this.processGetAllAlerts(_response);
         });
     }
 
-    protected processConnect(response: Response): Promise<void> {
+    protected processGetAllAlerts(response: Response): Promise<FileResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<FileResponse>(null as any);
     }
 }
 
@@ -411,7 +337,7 @@ export class TelemetryClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    getTelemetryForTurbine(turbineId: string): Promise<FileResponse> {
+    getTelemetryForTurbine(turbineId: string): Promise<Telemetry[]> {
         let url_ = this.baseUrl + "/api/Telemetry/{turbineId}";
         if (turbineId === undefined || turbineId === null)
             throw new globalThis.Error("The parameter 'turbineId' must be defined.");
@@ -421,7 +347,7 @@ export class TelemetryClient {
         let options_: RequestInit = {
             method: "GET",
             headers: {
-                "Accept": "application/octet-stream"
+                "Accept": "application/json"
             }
         };
 
@@ -430,7 +356,48 @@ export class TelemetryClient {
         });
     }
 
-    protected processGetTelemetryForTurbine(response: Response): Promise<FileResponse> {
+    protected processGetTelemetryForTurbine(response: Response): Promise<Telemetry[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as Telemetry[];
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Telemetry[]>(null as any);
+    }
+
+    addToGroup(connectionId: string | undefined, group: string | undefined): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/api/Telemetry/AddToGroup?";
+        if (connectionId === null)
+            throw new globalThis.Error("The parameter 'connectionId' cannot be null.");
+        else if (connectionId !== undefined)
+            url_ += "connectionId=" + encodeURIComponent("" + connectionId) + "&";
+        if (group === null)
+            throw new globalThis.Error("The parameter 'group' cannot be null.");
+        else if (group !== undefined)
+            url_ += "group=" + encodeURIComponent("" + group) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAddToGroup(_response);
+        });
+    }
+
+    protected processAddToGroup(response: Response): Promise<FileResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200 || status === 206) {
@@ -452,7 +419,53 @@ export class TelemetryClient {
         return Promise.resolve<FileResponse>(null as any);
     }
 
-    switchGroup(connectionId: string | undefined, group: string | undefined, previousGroup: string | null | undefined): Promise<Telemetry> {
+    removeFromGroup(connectionId: string | undefined, group: string | undefined): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/api/Telemetry/RemoveFromGroup?";
+        if (connectionId === null)
+            throw new globalThis.Error("The parameter 'connectionId' cannot be null.");
+        else if (connectionId !== undefined)
+            url_ += "connectionId=" + encodeURIComponent("" + connectionId) + "&";
+        if (group === null)
+            throw new globalThis.Error("The parameter 'group' cannot be null.");
+        else if (group !== undefined)
+            url_ += "group=" + encodeURIComponent("" + group) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRemoveFromGroup(_response);
+        });
+    }
+
+    protected processRemoveFromGroup(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
+    }
+
+    switchGroup(connectionId: string | undefined, group: string | undefined, previousGroup: string | null | undefined): Promise<FileResponse> {
         let url_ = this.baseUrl + "/api/Telemetry/SwitchGroup?";
         if (connectionId === null)
             throw new globalThis.Error("The parameter 'connectionId' cannot be null.");
@@ -469,7 +482,7 @@ export class TelemetryClient {
         let options_: RequestInit = {
             method: "POST",
             headers: {
-                "Accept": "application/json"
+                "Accept": "application/octet-stream"
             }
         };
 
@@ -478,21 +491,68 @@ export class TelemetryClient {
         });
     }
 
-    protected processSwitchGroup(response: Response): Promise<Telemetry> {
+    protected processSwitchGroup(response: Response): Promise<FileResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as Telemetry;
-            return result200;
-            });
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<Telemetry>(null as any);
+        return Promise.resolve<FileResponse>(null as any);
+    }
+
+    subscribeToAllAlerts(connectionId: string | undefined): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/api/Telemetry/SubscribeToAllAlerts?";
+        if (connectionId === null)
+            throw new globalThis.Error("The parameter 'connectionId' cannot be null.");
+        else if (connectionId !== undefined)
+            url_ += "connectionId=" + encodeURIComponent("" + connectionId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSubscribeToAllAlerts(_response);
+        });
+    }
+
+    protected processSubscribeToAllAlerts(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
     }
 
     connect(): Promise<void> {

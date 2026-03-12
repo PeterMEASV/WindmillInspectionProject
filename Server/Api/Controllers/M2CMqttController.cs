@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Api.Models;
 using Api.Services;
 using DataAccess;
 //using Microsoft.AspNetCore.Http.HttpResults;
@@ -114,5 +115,23 @@ public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext co
 
         return new OkObjectResult(new { message = "Alert published", alert });
     }
+
+    [MqttRoute("farm/Mindst2Commits/windmill/{turbineId}/alert")]
+        public async Task SubscribeToAlerts(AlertDTO alert, string turbineId)
+        {
+            logger.LogInformation("Alert received from Mindst2Commits for turbine {TurbineId}", turbineId);
+            await backplane.Clients.SendToGroupAsync("alerts-all", alert);
+            
+            Alert data = new Alert
+            {
+                Id = Guid.NewGuid().ToString(),
+                Turbineid = turbineId,
+                Timestamp = alert.Timestamp,
+                Message = alert.Message,
+                Severity = alert.Severity
+            };
+            context.Alerts.Add(data);
+            await context.SaveChangesAsync();
+        }
     
 }

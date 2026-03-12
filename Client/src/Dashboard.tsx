@@ -1,15 +1,14 @@
 import './Dashboard.css'
 import {useState, useEffect} from "react";
 import {useStream} from "./UseStream.tsx";
-import type {Telemetry} from "./generated-ts-client.ts";
+import type {Alert, Telemetry} from "./generated-ts-client.ts";
 import {MqttClient, telemetryClient} from "./baseUrl.ts";
 import {useAtomValue} from "jotai";
 import {connectionIdAtom} from "./Atoms.tsx";
 import TelemetryCard from "./Components/TelemetryCard.tsx";
+import AlertModal from "./Components/AlertModal.tsx";
 
 function Dashboard() {
-
-    const alarms = 1;
 
     // improve to be scalable. This is just sad man
     const turbines = ["turbine-alpha", "turbine-beta", "turbine-gamma", "turbine-delta"]
@@ -23,7 +22,23 @@ function Dashboard() {
     const stream = useStream();
     const connectionId = useAtomValue(connectionIdAtom);
     const [telemetries, setTelemetries] = useState<Telemetry[]>([]);
+    const [alerts, setAlerts] = useState<Alert[]>([]);
 
+    useEffect(() => {
+    if (!connectionId) return;
+    telemetryClient.subscribeToAllAlerts(connectionId);
+
+    const unsubscribe = stream.on<Alert>("alerts-all", "alerts-all",
+        (dto) => {
+            console.log("🚨 Alert received:", dto);
+            setAlerts(prevAlerts => [...prevAlerts, dto]);
+        }
+    );
+
+    return () => {
+        unsubscribe();
+    };
+}, [connectionId, stream]);
 
     const handleTurbineSelect = (turbine: string) => {
         console.log("Selected turbine:", turbine);
@@ -154,12 +169,15 @@ function Dashboard() {
                 <a className="btn btn-ghost text-xl">Mindst 2 Commits</a>
             </div>
             <div className="navbar-end mr-5">
-                <button className="btn btn-ghost btn-circle indicator">
+                <button 
+                    className="btn btn-ghost btn-circle indicator"
+                    onClick={() => (document.getElementById('alert_modal') as HTMLDialogElement)?.showModal()}
+                >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /> </svg>
 
-                    {alarms > 0 && (
+                    {alerts.length > 0 && (
                         <span className="badge badge-xs badge-primary indicator-item">
-                            {alarms >= 100 ? '99+' : alarms}
+                            {alerts.length >= 100 ? '99+' : alerts.length}
                         </span>
                     )}
                 </button>
@@ -252,7 +270,7 @@ function Dashboard() {
                 />
             </div>
 
-            {/* Open the modal using document.getElementById('ID').showModal() method */}
+            {/* Commands Modal */}
             <dialog id="my_modal_1" className="modal">
                 <div className="modal-box h-[300px] flex flex-col">
                     <div className="flex-grow">
@@ -284,6 +302,9 @@ function Dashboard() {
                     </div>
                 </div>
             </dialog>
+
+            {/* Alert Modal */}
+            <AlertModal alerts={alerts} />
         </div>
         </>
 
