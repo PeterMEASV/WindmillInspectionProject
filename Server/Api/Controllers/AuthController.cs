@@ -1,5 +1,5 @@
 ﻿
-using System.Security.Claims;
+using System.Security.Authentication;
 using Api.Models;
 using Api.Security;
 using Api.Services.Interfaces;
@@ -11,57 +11,44 @@ namespace Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ControllerBase
+public class AuthController(IAuthService authService, ILogger<AuthController> logger, ITokenService tokenService) : ControllerBase
 {
-    private readonly IAuthService _authService;
-    private readonly ILogger<AuthController> _logger;
-    private readonly ITokenService _tokenService; 
-
-    public AuthController(IAuthService authService, ILogger<AuthController> logger, ITokenService tokenService)
-    {
-        _authService = authService;
-        _logger = logger;
-        _tokenService = tokenService;
-    }
-    
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] LoginDTO loginDto)
     {
+        if (string.IsNullOrWhiteSpace(loginDto.Email) || string.IsNullOrWhiteSpace(loginDto.Password))
+        {
+            return BadRequest("Email and password are required");
+        }
+
         try
         {
-            if (string.IsNullOrWhiteSpace(loginDto.Email) || string.IsNullOrWhiteSpace(loginDto.Password))
-            {
-                return BadRequest("Email and password are required");
-            }
-
-            var user = await _authService.LoginAsync(loginDto);
-
-            if (user == null)
-            {
-                return Unauthorized("Invalid email or password, or account is inactive");
-            }
+            var user = await authService.LoginAsync(loginDto);
 
             var response = new LoginResponseDTO(
-                user.Id,
+                user!.Id,
                 user.Email,
-                _tokenService.CreateToken(user),
+                tokenService.CreateToken(user),
                 "Login successful"
             );
 
             return Ok(response);
         }
+        catch (InvalidCredentialException)
+        {
+            return Unauthorized("Invalid email or password");
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during login");
-            return StatusCode(500, "An error occurred during login" + ex.Message);
+            logger.LogError(ex, "Unexpected error during login");
+            return StatusCode(500, "An error occurred during login");
         }
     }
 
-    [HttpGet]
-    [Route("userInfo")]
-    public async Task<User?> GetUserInfo()
+    [HttpGet("userInfo")]
+    public ActionResult<User?> GetUserInfo()
     {
-        return _authService.GetUserInfo(User);
+        return authService.GetUserInfo(User);
     }
 }

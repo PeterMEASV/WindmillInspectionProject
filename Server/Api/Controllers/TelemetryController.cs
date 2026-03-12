@@ -1,30 +1,21 @@
-﻿using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using DataAccess;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
+using Api.Services.Interfaces;
 using StateleSSE.AspNetCore;
 using StateleSSE.AspNetCore.EfRealtime;
-
 
 namespace Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class TelemetryController(ISseBackplane backplane, MyDbContext context, IRealtimeManager realtimeManager) 
+public class TelemetryController(ISseBackplane backplane, ITelemetryService telemetryService, IRealtimeManager realtimeManager)
     : RealtimeControllerBase(backplane)
 {
-    
     [HttpGet("{turbineId}")]
     public async Task<List<Telemetry>> GetTelemetryForTurbine(string turbineId)
     {
-        var data = await context.Telemetries
-            .Where(t => t.Turbineid == turbineId)
-            .OrderByDescending(t => t.Timestamp)
-            .Take(100)
-            .ToListAsync();
-
-        return data;
+        return await telemetryService.GetTelemetryForTurbine(turbineId);
     }
 
     [HttpPost(nameof(AddToGroup))]

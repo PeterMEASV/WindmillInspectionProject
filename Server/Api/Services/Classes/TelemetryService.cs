@@ -1,19 +1,21 @@
 ﻿using DataAccess;
 using Api.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
-public class TelemetryService : ITelemetryService
+public class TelemetryService(MyDbContext context) : ITelemetryService
 {
-    private readonly MyDbContext _context;
-
-    public TelemetryService(MyDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task SaveTelemetryAsync(Telemetry telemetry)
     {
-        _context.Telemetries.Add(telemetry);
-        await _context.SaveChangesAsync();
-        
+        context.Telemetries.Add(telemetry);
+        await context.SaveChangesAsync();
+    }
+
+    public Task<List<Telemetry>> GetTelemetryForTurbine(string turbineId)
+    {
+        return context.Telemetries
+            .Where(t => t.Turbineid == turbineId)
+            .OrderByDescending(t => t.Timestamp)
+            .Take(100)
+            .ToListAsync();
     }
 }

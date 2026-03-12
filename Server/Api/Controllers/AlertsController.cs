@@ -1,46 +1,35 @@
-﻿using DataAccess;
-using Microsoft.AspNetCore.Authorization;
+﻿using Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AlertsController(MyDbContext context) : ControllerBase
+public class AlertsController(IAlertsService alertsService) : ControllerBase
 {
     [HttpGet("turbine/{turbineId}")]
     public async Task<IActionResult> GetAlertsForTurbine(string turbineId)
     {
-        var alerts = await context.Alerts
-            .Where(a => a.Turbineid == turbineId)
-            .OrderByDescending(a => a.Timestamp)
-            .ToListAsync();
-
+        var alerts = await alertsService.GetAlertsForTurbine(turbineId);
         return Ok(alerts);
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAllAlerts()
     {
-        var alerts = await context.Alerts
-            .OrderByDescending(a => a.Timestamp)
-            .ToListAsync();
-
+        var alerts = await alertsService.GetAllAlerts();
         return Ok(alerts);
     }
 
     [HttpPatch]
     public async Task<IActionResult> ResolveAlert(string id)
     {
-        var alert = await context.Alerts.FindAsync(id);
-        if (alert == null)
+        var resolved = await alertsService.ResolveAlert(id);
+        if (!resolved)
         {
             return NotFound();
         }
 
-        alert.Resolved = true;
-        await context.SaveChangesAsync();
         return NoContent();
     }
 }
