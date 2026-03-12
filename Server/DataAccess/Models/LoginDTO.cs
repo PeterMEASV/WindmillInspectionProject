@@ -1,4 +1,4 @@
-﻿﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Api.Models;
 
@@ -13,7 +13,6 @@ public record LoginDTO(
 public record LoginResponseDTO(
     string id,
     string email,
-    string password,
     string token,
     string message
 );

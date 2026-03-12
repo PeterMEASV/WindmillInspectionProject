@@ -2,6 +2,7 @@
 using Api.Models;
 using Api.Services;
 using DataAccess;
+using Api.Services.Interfaces;
 //using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Mqtt.Controllers;
@@ -9,8 +10,13 @@ using StateleSSE.AspNetCore;
 
 namespace Api.Controllers;
 
-public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext context, IMqttClientService mqtt, ISseBackplane backplane, CommandHistoryService commandHistoryService) : MqttController
+public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext context,ITelemetryService telemetryService, IMqttClientService mqtt, ISseBackplane backplane, CommandHistoryService commandHistoryService) : MqttController
 {
+    private readonly ILogger<M2CMqttController> _logger = logger;
+    private readonly ITelemetryService _telemetryService = telemetryService;
+    private readonly ISseBackplane _backplane = backplane;
+    
+    
     [ApiExplorerSettings(IgnoreApi = true)]
     [MqttRoute("farm/Mindst2Commits/windmill/{turbineId}/telemetry")]
     public async Task SubscribeToWindmillTelemetry(Telemetry data, string turbineId)
@@ -25,8 +31,7 @@ public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext co
         data.Id = Guid.NewGuid().ToString();
         data.Turbineid = turbineId;
 
-        context.Telemetries.Add(data);
-        await context.SaveChangesAsync();
+        await _telemetryService.SaveTelemetryAsync(data);
 
         switch (data.Turbineid)
         {

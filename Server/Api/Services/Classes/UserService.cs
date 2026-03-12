@@ -1,21 +1,22 @@
-﻿﻿
-using Api.Models;
+﻿using Api.Models;
 using Api.Security;
 using Api.Services.Interfaces;
 using DataAccess;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Services.Classes;
 
-public class UserService(MyDbContext context, ILogger<UserService> logger, KonciousArgon2idPasswordHasher passwordHasher) : IUserService
+public class UserService(
+    MyDbContext context,
+    ILogger<UserService> logger,
+    IPasswordHasher<User> passwordHasher) : IUserService
 {
     public async Task<User> CreateUserAsync(CreateUserDTO userDto)
     {
         logger.LogInformation("Creating user {Email}", userDto.email);
-        
 
-        //Validator
-        if (string.IsNullOrWhiteSpace(userDto.email))
+        if (string.IsNullOrWhiteSpace(userDto.email) || string.IsNullOrWhiteSpace(userDto.password))
         {
             throw new ArgumentException("Fill out all fields");
         }
@@ -32,8 +33,7 @@ public class UserService(MyDbContext context, ILogger<UserService> logger, Konci
         {
             Id = Guid.NewGuid().ToString(),
             Email = userDto.email,
-            Password = passwordHasher.HashPassword(null, userDto.password),
-
+            Password = passwordHasher.HashPassword(null!, userDto.password),
         };
 
         context.Users.Add(user);

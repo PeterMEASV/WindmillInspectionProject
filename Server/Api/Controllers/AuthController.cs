@@ -45,7 +45,6 @@ public class AuthController : ControllerBase
             var response = new LoginResponseDTO(
                 user.Id,
                 user.Email,
-                user.Password,
                 _tokenService.CreateToken(user),
                 "Login successful"
             );

@@ -1,26 +1,23 @@
 ﻿
+using System.Security.Authentication;
 using System.Security.Claims;
 using Api.Models;
-using Api.Security;
 using Api.Services.Interfaces;
 using DataAccess;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Security.Authentication;
-
 
 namespace Api.Services.Classes;
 
 public class AuthService(
-    MyDbContext context, 
-    ILogger<AuthService> logger, 
-    KonciousArgon2idPasswordHasher passwordHasher) : IAuthService
+    MyDbContext context,
+    ILogger<AuthService> logger,
+    IPasswordHasher<User> passwordHasher) : IAuthService
 {
     public async Task<User?> LoginAsync(LoginDTO loginDto)
     {
         logger.LogInformation("Login attempt for email {Email}", loginDto.Email);
 
-        // Check if user exists
         var user = await context.Users
             .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
 
@@ -30,20 +27,18 @@ public class AuthService(
             throw new InvalidCredentialException("Invalid email or password");
         }
 
-        // Verify password
-        var result = passwordHasher.VerifyHashedPassword(null, user.Password, loginDto.Password);
-        
-        if (result != Microsoft.AspNetCore.Identity.PasswordVerificationResult.Success)
+        var result = passwordHasher.VerifyHashedPassword(user, user.Password, loginDto.Password);
+
+        if (result != PasswordVerificationResult.Success)
         {
             logger.LogWarning("Login failed: Invalid password");
             throw new InvalidCredentialException("Invalid email or password");
         }
 
-    
         logger.LogInformation("Login successful for user {UserId} - {Email}", user.Id, user.Email);
         return user;
     }
-    
+
     public User? GetUserInfo(ClaimsPrincipal principal)
     {
         if (principal?.Identity?.IsAuthenticated != true)
@@ -51,7 +46,7 @@ public class AuthService(
             return null;
         }
 
-        var userId = principal.GetUserId();
+        var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
         {
             return null;
