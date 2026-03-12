@@ -13,6 +13,7 @@ public record LoginDTO(
 public record LoginResponseDTO(
     string id,
     string email,
-    string password
-   
+    string password,
+    string token,
+    string message
 );

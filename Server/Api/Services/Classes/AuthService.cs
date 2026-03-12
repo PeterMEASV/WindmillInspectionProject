@@ -7,7 +7,7 @@ using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Security.Authentication;
-using DataAccess.Entities;
+
 
 namespace Api.Services.Classes;
 

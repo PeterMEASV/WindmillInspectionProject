@@ -15,7 +15,7 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly ILogger<AuthController> _logger;
-    private readonly ITokenService _tokenService;
+    private readonly ITokenService _tokenService; 
 
     public AuthController(IAuthService authService, ILogger<AuthController> logger, ITokenService tokenService)
     {
@@ -45,7 +45,7 @@ public class AuthController : ControllerBase
             var response = new LoginResponseDTO(
                 user.Id,
                 user.Email,
-                user.Lastname,
+                user.Password,
                 _tokenService.CreateToken(user),
                 "Login successful"
             );
