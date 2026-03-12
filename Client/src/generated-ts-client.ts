@@ -760,7 +760,6 @@ export class UserClient {
 export interface LoginResponseDTO {
     id?: string;
     email?: string;
-    password?: string;
     token?: string;
     message?: string;
 }

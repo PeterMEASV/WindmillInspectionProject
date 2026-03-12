@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { useAuth } from './auth.tsx';
 
 export function LoginPage() {
+    const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -13,9 +14,9 @@ export function LoginPage() {
         setLoading(true);
 
         try {
-            //await login({ email, password });
+            await login({ email, password });
             // navigation is handled inside the hook
-        } catch{
+        } catch {
             setError("Invalid email or password, or account is inactive");
         } finally {
             setLoading(false);

@@ -9,7 +9,7 @@ function Home() {
 
         // implement cookie check
 
-        void navigate("/Dashboard");
+        void navigate("/Login");
         return;
     })
 
