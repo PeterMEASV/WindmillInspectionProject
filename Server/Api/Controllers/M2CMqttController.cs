@@ -3,6 +3,7 @@ using Api.Models;
 using Api.Services;
 using DataAccess;
 using Api.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 //using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Mqtt.Controllers;
@@ -56,6 +57,7 @@ public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext co
     }
     
     [HttpPost("farm/Mindst2Commits/windmill/{turbineId}/command/set-interval")]
+    [Authorize]
     public async Task<ActionResult> SetInterval(string turbineId, int interval)
     {
         var command = Command.SetInterval(interval);
@@ -66,6 +68,7 @@ public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext co
         return new OkResult();
     }
     [HttpPost("farm/Mindst2Commits/windmill/{turbineId}/command/stop")]
+    [Authorize]
     public async Task<ActionResult> StopTurbine(string turbineId, [FromQuery] string? reason = null)
     {
         var command = Command.Stop(reason);
@@ -77,6 +80,7 @@ public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext co
         return new OkResult();
     }
     [HttpPost("farm/Mindst2Commits/windmill/{turbineId}/command/start")]
+    [Authorize]
     public async Task<ActionResult> StartTurbine(string turbineId)
     {
         var command = Command.Start();
@@ -88,6 +92,7 @@ public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext co
         return new OkResult();
     }
     [HttpPost("farm/Mindst2Commits/windmill/{turbineId}/command/blade-pitch")]
+    [Authorize]
     public async Task<ActionResult> SetBladePitch(string turbineId, int bladePitch)
     {
         var command = Command.SetPitch(bladePitch);

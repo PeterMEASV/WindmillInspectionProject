@@ -62,6 +62,7 @@ public class TelemetryController(ISseBackplane backplane, MyDbContext context, I
     }
 
     [HttpPost(nameof(SwitchGroup))]
+    [Authorize]
     public async Task<IActionResult> SwitchGroup(string connectionId, string group, string? previousGroup)
     {
         if (string.IsNullOrWhiteSpace(connectionId) || string.IsNullOrWhiteSpace(group))
@@ -85,7 +86,7 @@ public class TelemetryController(ISseBackplane backplane, MyDbContext context, I
     }
 
     [HttpPost(nameof(SubscribeToAllAlerts))]
-    
+    [Authorize]
     public async Task<IActionResult> SubscribeToAllAlerts(string connectionId)
     {
         if (string.IsNullOrWhiteSpace(connectionId))
