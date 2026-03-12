@@ -20,6 +20,7 @@ public class UserController : ControllerBase
     }
     
     [HttpPost("create")]
+    [AllowAnonymous]
     public async Task<ActionResult<User>> CreateUser([FromBody] CreateUserDTO userDto)
     {
         try

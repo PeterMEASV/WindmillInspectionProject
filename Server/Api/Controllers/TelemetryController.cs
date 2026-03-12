@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using DataAccess;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using StateleSSE.AspNetCore;
 using StateleSSE.AspNetCore.EfRealtime;
@@ -84,6 +85,7 @@ public class TelemetryController(ISseBackplane backplane, MyDbContext context, I
     }
 
     [HttpPost(nameof(SubscribeToAllAlerts))]
+    
     public async Task<IActionResult> SubscribeToAllAlerts(string connectionId)
     {
         if (string.IsNullOrWhiteSpace(connectionId))
