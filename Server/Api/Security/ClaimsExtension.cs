@@ -18,7 +18,7 @@ public static class ClaimExtensions
     }
 
     public static IEnumerable<Claim> ToClaims(this User user) =>
-        [new("sub", user.Id.ToString()), new("role", user.Isadmin ? "Admin" : "User")];
+        [new("sub", user.Id.ToString())];
 
     public static ClaimsPrincipal ToPrincipal(this User user) =>
         new ClaimsPrincipal(new ClaimsIdentity(user.ToClaims()));

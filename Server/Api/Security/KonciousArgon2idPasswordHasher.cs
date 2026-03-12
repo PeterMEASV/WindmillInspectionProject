@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
-using DataAccess.Entities;
+using DataAccess;
 using Microsoft.AspNetCore.Identity;
 
 namespace Api.Security;
