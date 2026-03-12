@@ -17,6 +17,8 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<Telemetry> Telemetries { get; set; }
 
+    public virtual DbSet<User> Users { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Alert>(entity =>
@@ -28,6 +30,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Farmid).HasColumnName("farmid");
             entity.Property(e => e.Message).HasColumnName("message");
+            entity.Property(e => e.Resolved).HasColumnName("resolved");
             entity.Property(e => e.Severity).HasColumnName("severity");
             entity.Property(e => e.Timestamp).HasColumnName("timestamp");
             entity.Property(e => e.Turbineid).HasColumnName("turbineid");
@@ -71,6 +74,17 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Vibration).HasColumnName("vibration");
             entity.Property(e => e.Winddirection).HasColumnName("winddirection");
             entity.Property(e => e.Windspeed).HasColumnName("windspeed");
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("users_pkey");
+
+            entity.ToTable("users", "windmillinspection");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Email).HasColumnName("email");
+            entity.Property(e => e.Password).HasColumnName("password");
         });
 
         OnModelCreatingPartial(modelBuilder);

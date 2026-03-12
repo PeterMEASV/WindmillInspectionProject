@@ -1,6 +1,8 @@
 using api;
+using Api.Security;
 using Api.Services;
 using DataAccess;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Mqtt.Controllers;
 using StateleSSE.AspNetCore;
@@ -26,6 +28,7 @@ builder.Services.AddInMemorySseBackplane();
 builder.Services.AddEfRealtime();
 builder.Services.AddOpenApiDocument();
 builder.Services.AddScoped<CommandHistoryService>();
+builder.Services.AddScoped<IPasswordHasher<User>, KonciousArgon2idPasswordHasher>();
 
 var app = builder.Build();
 app.UseCors(config => config.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());

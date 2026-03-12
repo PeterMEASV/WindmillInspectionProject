@@ -16,4 +16,6 @@ public partial class Alert
     public string Severity { get; set; } = null!;
 
     public string Message { get; set; } = null!;
+
+    public bool Resolved { get; set; }
 }
