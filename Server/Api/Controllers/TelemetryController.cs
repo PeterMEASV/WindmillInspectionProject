@@ -25,19 +25,79 @@ public class TelemetryController(ISseBackplane backplane, MyDbContext context, I
 
         return Ok(data);
     }
-    
-    
-    [HttpPost(nameof(SwitchGroup))]
-    public async Task<Telemetry?> SwitchGroup(string connectionId, string group, string? previousGroup)
+
+    [HttpPost(nameof(AddToGroup))]
+    public async Task<IActionResult> AddToGroup(string connectionId, string group)
     {
-        if (previousGroup != null)
+        if (string.IsNullOrWhiteSpace(connectionId) || string.IsNullOrWhiteSpace(group))
+        {
+            return BadRequest("connectionId and group are required.");
+        }
+
+        await backplane.Groups.AddToGroupAsync(connectionId, group);
+        Console.WriteLine($"Subscribed {connectionId} to {group}");
+
+        return Ok(new
+        {
+            message = $"Subscribed to group '{group}'"
+        });
+    }
+
+    [HttpPost(nameof(RemoveFromGroup))]
+    public async Task<IActionResult> RemoveFromGroup(string connectionId, string group)
+    {
+        if (string.IsNullOrWhiteSpace(connectionId) || string.IsNullOrWhiteSpace(group))
+        {
+            return BadRequest("connectionId and group are required.");
+        }
+
+        await backplane.Groups.RemoveFromGroupAsync(connectionId, group);
+        Console.WriteLine($"Unsubscribed {connectionId} from {group}");
+
+        return Ok(new
+        {
+            message = $"Unsubscribed from group '{group}'"
+        });
+    }
+
+    [HttpPost(nameof(SwitchGroup))]
+    public async Task<IActionResult> SwitchGroup(string connectionId, string group, string? previousGroup)
+    {
+        if (string.IsNullOrWhiteSpace(connectionId) || string.IsNullOrWhiteSpace(group))
+        {
+            return BadRequest("connectionId and group are required.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(previousGroup))
         {
             await backplane.Groups.RemoveFromGroupAsync(connectionId, previousGroup);
-            Console.WriteLine($"Unsubscribe called for {connectionId}");
+            Console.WriteLine($"Unsubscribed {connectionId} from {previousGroup}");
         }
         await backplane.Groups.AddToGroupAsync(connectionId, group);
-        Console.WriteLine($"Subscribe called for {connectionId}");
-        return null;
+        Console.WriteLine($"Subscribed {connectionId} to {group}");
+
+        return Ok(new
+        {
+            message = $"Switched subscription to '{group}'",
+            previousGroup
+        });
     }
-    
+
+    [HttpPost(nameof(SubscribeToAllAlerts))]
+    public async Task<IActionResult> SubscribeToAllAlerts(string connectionId)
+    {
+        if (string.IsNullOrWhiteSpace(connectionId))
+        {
+            return BadRequest("connectionId is required.");
+        }
+
+        await backplane.Groups.AddToGroupAsync(connectionId, "alerts-all");
+        Console.WriteLine($"Subscribed {connectionId} to alerts-all");
+
+        return Ok(new
+        {
+            message = "Subscribed to all alerts.",
+            group = "alerts-all"
+        });
+    }
 }
