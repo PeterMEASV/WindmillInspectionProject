@@ -1,5 +1,5 @@
 ﻿
-/*using System.Security.Claims;
+using System.Security.Claims;
 using Api.Models;
 using Api.Security;
 using Api.Services.Interfaces;
@@ -63,4 +63,4 @@ public class AuthService(
         );
     }
     
-}*/
+}

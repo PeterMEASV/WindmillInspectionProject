@@ -1,4 +1,4 @@
-﻿/*using System.Security.Claims;
+﻿using System.Security.Claims;
 using Api.Models;
 using DataAccess;
 
@@ -8,4 +8,4 @@ public interface IAuthService
 {
     Task<User?> LoginAsync(LoginDTO loginDto);
     User? GetUserInfo(ClaimsPrincipal principal);
-}*/
+}

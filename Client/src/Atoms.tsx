@@ -1,8 +1,8 @@
 import {atom} from "jotai";
 import type {RouteObject} from "react-router";
 import Home from "./Home.tsx";
-import Login from "./Login.tsx";
 import Dashboard from "./Dashboard.tsx";
+import {LoginPage} from "./LoginPage.tsx";
 
 export const connectionIdAtom = atom<string | null>(null);
 export const routesAtom = atom<RouteObject[]>([
@@ -11,11 +11,11 @@ export const routesAtom = atom<RouteObject[]>([
         element: <Home />
     },
     {
-        path: "login",
-        element: <Login />
-    },
-    {
         path: "Dashboard",
         element: <Dashboard />
+    },
+    {
+        path: "Login",
+        element: <LoginPage />
     }
 ])

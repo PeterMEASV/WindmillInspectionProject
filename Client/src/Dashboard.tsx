@@ -94,13 +94,24 @@ function Dashboard() {
         switch (selectedCommand) {
             case "setInterval":
                 if(selectedTurbine != null && inputValue != null)
-                    MqttClient.setInterval(selectedTurbine, Number(inputValue));
-                console.log(Number(inputValue));
+                    if(Number(inputValue) >= 1 && Number(inputValue) <= 60) {
+                        MqttClient.setInterval(selectedTurbine, Number(inputValue));
+                        console.log(Number(inputValue));
+                    }
+                    else
+                    {
+                        alert("Interval must be between 1 and 60 seconds.");
+                    }
                 break;
 
             case "stop":
-                if(selectedTurbine != null && inputValue != null)
+                if(selectedTurbine != null && inputValue != null) {
                     MqttClient.stopTurbine(selectedTurbine, inputValue);
+                }
+                else
+                {
+                    alert("Please enter a reason for stopping.");
+                }
                 break;
 
             case "start":
@@ -110,8 +121,13 @@ function Dashboard() {
 
             case "setPitch":
                 if(selectedTurbine != null && inputValue != null)
-                    MqttClient.setBladePitch(selectedTurbine, Number(inputValue));
-                console.log(Number(inputValue));
+                    if(Number(inputValue) >= 0 && Number(inputValue) <= 30) {
+                        MqttClient.setBladePitch(selectedTurbine, Number(inputValue));
+                        console.log(Number(inputValue));
+                    }
+                    else {
+                        alert("Pitch must be between 0 and 30 degrees.");
+                    }
                 break;
         }
     }

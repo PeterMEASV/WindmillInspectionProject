@@ -1,4 +1,4 @@
-﻿/*using System.Security.Claims;
+﻿using System.Security.Claims;
 using DataAccess;
 
 namespace Api.Security;
@@ -22,4 +22,4 @@ public static class ClaimExtensions
 
     public static ClaimsPrincipal ToPrincipal(this User user) =>
         new ClaimsPrincipal(new ClaimsIdentity(user.ToClaims()));
-}*/
+}

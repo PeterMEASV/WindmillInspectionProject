@@ -41,7 +41,7 @@ function AlertModal({ alerts, onResolveAlert }: AlertModalProps) {
         : alerts.filter(alert => alert.resolved);
 
     return (
-        <dialog id="alert_modal" className="modal">
+        <dialog id="alert_modal" className="modal" style={{ alignItems: 'flex-start', paddingTop: '1rem' }}>
             <div className="modal-box w-11/12 max-w-5xl">
                 <h3 className="font-bold text-lg mb-4">
                     Alerts (Unresolved: {alerts.filter(a => !a.resolved).length} | Resolved: {alerts.filter(a => a.resolved).length})

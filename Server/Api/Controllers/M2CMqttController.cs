@@ -98,9 +98,9 @@ public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext co
     
     
     [HttpPost("farm/Mindst2Commits/windmill/{turbineId}/alert")]
-    public async Task<IActionResult> PublishAlert(string turbineId, [FromBody] Alert alert)
+    public async Task<IActionResult> PublishAlert([FromBody] Alert alert)
     {
-        alert.Turbineid = turbineId;
+        alert.Turbineid = alert.Turbineid;
         alert.Timestamp ??= DateTime.UtcNow;
         alert.Id = Guid.NewGuid().ToString();
         alert.Resolved = false;
@@ -112,7 +112,7 @@ public class M2CMqttController(ILogger<M2CMqttController> logger, MyDbContext co
         // 2) global alerts group
         await backplane.Clients.SendToGroupAsync("alerts-all", alert);
 
-        logger.LogInformation("Simulated alert sent to SSE for turbine {TurbineId}", turbineId);
+        logger.LogInformation("Simulated alert sent to SSE for turbine {TurbineId}", alert.Turbineid);
 
         return new OkObjectResult(new { message = "Alert published", alert });
     }
